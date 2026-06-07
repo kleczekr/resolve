@@ -1,19 +1,45 @@
 # ARRIRAW ART FILM COLOUR GRADING WORKFLOW
+
 ## ARRI ALEXA Plus 4:3 / Ultra Prime / Dim Candle-Lit Interiors
 
-This is not a universal grading workflow. This is a project-specific approach for an art film recorded in ARRIRAW on an ARRI ALEXA Plus 4:3 with Ultra Prime lenses, built around dim light, deep shadows, candle-like irregularity, and the need to make visible walls fall into deep, endless space.
+This is not a universal grading workflow. This is a project-specific approach
+for an art film recorded in ARRIRAW on an ARRI ALEXA Plus 4:3 with Ultra Prime
+lenses, built around dim light, deep shadows, candle-like irregularity, and the
+need to make visible walls fall into deep, endless space.
 
 The core idea:
 
 **Do not make the image correct. Make the darkness believable.**
 
-The grade should preserve the feeling that the characters are held by a small, unstable pool of light, while the world behind them disappears.
+The grade should preserve the feeling that the characters are held by a small,
+unstable pool of light, while the world behind them disappears.
+
+---
+
+## INTRODUCTORY
+
+Darkness is never just the absence of light. In a dim interior, colour decides
+whether black feels like cheap underexposure, theatrical mystery, spiritual
+pressure, memory, exhaustion, or an actual room receding beyond sight. The ALEXA
+negative may contain more information than the film should reveal, so the grade
+must become an ethic of withholding: not every visible wall deserves to be seen,
+not every shadow should be rescued, and not every face needs ordinary brightness
+to remain human.
+
+The philosophy of this workflow is to let colour behave like candlelight
+behaves: local, unstable, partial, and alive. Warmth should come from sources,
+not from a blanket orange wash. Faces and hands should be held just enough for
+recognition, while backgrounds are allowed to lose their claim on the viewer.
+The grade is not correcting the footage toward a neutral image; it is shaping a
+believable threshold between presence and disappearance.
 
 ---
 
 ## WHAT THIS FOOTAGE WANTS
 
-ARRIRAW from an ALEXA Plus 4:3 has enormous latitude, smooth highlight handling, and very pliable shadows. That is a gift, but it is also a danger. The files may let you see too much.
+ARRIRAW from an ALEXA Plus 4:3 has enormous latitude, smooth highlight handling,
+and very pliable shadows. That is a gift, but it is also a danger. The files may
+let you see too much.
 
 For this film, visible information is not automatically useful information.
 
@@ -39,16 +65,18 @@ You are trying to:
 
 Use these as the starting assumptions unless the camera metadata says otherwise:
 
-| Item | Likely Setting |
-|------|----------------|
-| Camera | ARRI ALEXA Plus 4:3 |
-| Recording | ARRIRAW |
-| Camera color science | LogC3 / ALEXA Wide Gamut |
-| Lens family | ARRI/Zeiss Ultra Prime |
-| Working space recommendation | DaVinci Wide Gamut Intermediate |
-| Output | Rec.709 Gamma 2.4 for grading monitor, unless delivering otherwise |
+| Item                         | Likely Setting                                                     |
+| ---------------------------- | ------------------------------------------------------------------ |
+| Camera                       | ARRI ALEXA Plus 4:3                                                |
+| Recording                    | ARRIRAW                                                            |
+| Camera color science         | LogC3 / ALEXA Wide Gamut                                           |
+| Lens family                  | ARRI/Zeiss Ultra Prime                                             |
+| Working space recommendation | DaVinci Wide Gamut Intermediate                                    |
+| Output                       | Rec.709 Gamma 2.4 for grading monitor, unless delivering otherwise |
 
-Do not use LogC4 or ARRI Wide Gamut 4 for this camera. Those belong to newer ARRI color pipelines. The ALEXA Plus 4:3 is a classic ALEXA-era LogC3/ALEXA Wide Gamut camera.
+Do not use LogC4 or ARRI Wide Gamut 4 for this camera. Those belong to newer
+ARRI color pipelines. The ALEXA Plus 4:3 is a classic ALEXA-era LogC3/ALEXA Wide
+Gamut camera.
 
 ---
 
@@ -61,10 +89,13 @@ Use a color-managed workflow if possible:
 1. Open **Project Settings -> Color Management**.
 2. Set **Color Science** to `DaVinci YRGB Color Managed`.
 3. Set **Timeline Color Space** to `DaVinci Wide Gamut Intermediate`.
-4. Set **Output Color Space** to `Rec.709 Gamma 2.4` for a normal grading monitor.
-5. Set ARRIRAW clips to `ARRI LogC3 / ALEXA Wide Gamut` as input, if Resolve does not detect this correctly.
+4. Set **Output Color Space** to `Rec.709 Gamma 2.4` for a normal grading
+   monitor.
+5. Set ARRIRAW clips to `ARRI LogC3 / ALEXA Wide Gamut` as input, if Resolve
+   does not detect this correctly.
 
-This keeps the grade in a large working space and avoids making creative decisions in cramped Rec.709 too early.
+This keeps the grade in a large working space and avoids making creative
+decisions in cramped Rec.709 too early.
 
 ### Alternative Node-Based Input Transform
 
@@ -76,9 +107,11 @@ If you do not want project-level color management:
 4. Input Gamma: `ARRI LogC3`.
 5. Output Color Space: `DaVinci Wide Gamut`.
 6. Output Gamma: `DaVinci Intermediate`.
-7. Use another CST at the end for `DaVinci Wide Gamut Intermediate -> Rec.709 Gamma 2.4`.
+7. Use another CST at the end for
+   `DaVinci Wide Gamut Intermediate -> Rec.709 Gamma 2.4`.
 
-Do not stack both approaches. Either use project-level color management or node-based transforms.
+Do not stack both approaches. Either use project-level color management or
+node-based transforms.
 
 ---
 
@@ -97,7 +130,8 @@ Gamma: LogC
 
 ### Exposure Decode
 
-Use ARRIRAW exposure controls carefully. They happen before the grade and can shift the entire negative.
+Use ARRIRAW exposure controls carefully. They happen before the grade and can
+shift the entire negative.
 
 Use raw exposure when:
 
@@ -111,11 +145,13 @@ Avoid raw exposure when:
 - Only the background is too visible.
 - You are trying to make a moody shot brighter because the scopes feel low.
 
-For this film, many shots should live low. Do not lift them just because the waveform looks empty.
+For this film, many shots should live low. Do not lift them just because the
+waveform looks empty.
 
 ### White Balance Decode
 
-Candle-like sources should not be neutralized. Keep warmth, but prevent the grade from becoming muddy orange.
+Candle-like sources should not be neutralized. Keep warmth, but prevent the
+grade from becoming muddy orange.
 
 Use raw white balance only for large mistakes:
 
@@ -141,9 +177,9 @@ Choose:
 
 Grade those first. These are not final polish shots. They are anchors.
 
-The close shot anchor tells you how faces should live.
-The wide shot anchor tells you how much wall detail must disappear.
-The darkest shot tells you how far the film is allowed to go.
+The close shot anchor tells you how faces should live. The wide shot anchor
+tells you how much wall detail must disappear. The darkest shot tells you how
+far the film is allowed to go.
 
 ---
 
@@ -174,19 +210,22 @@ Faces do not need to be bright. They need to be locatable.
 
 For dim candle-like interiors, faces may sit lower than normal:
 
-| Face Type | Possible Luma Range |
-|-----------|---------------------|
-| Barely held in darkness | 25-35 IRE |
-| Main candle-lit face | 35-50 IRE |
-| Moment of stronger emotional exposure | 50-60 IRE |
+| Face Type                             | Possible Luma Range |
+| ------------------------------------- | ------------------- |
+| Barely held in darkness               | 25-35 IRE           |
+| Main candle-lit face                  | 35-50 IRE           |
+| Moment of stronger emotional exposure | 50-60 IRE           |
 
-These are not rules. They are guardrails. If the face feels alive at 30 IRE, do not lift it to 50 just because a normal workflow says skin should live there.
+These are not rules. They are guardrails. If the face feels alive at 30 IRE, do
+not lift it to 50 just because a normal workflow says skin should live there.
 
 ### Highlights
 
 There may not be many highlights. Protect the few that exist.
 
-Candle flames, hot practicals, and small speculars can go high, but they should feel soft and organic. ALEXA highlight rolloff is one of the reasons the image can feel painterly. Do not hard-clip it with aggressive contrast.
+Candle flames, hot practicals, and small speculars can go high, but they should
+feel soft and organic. ALEXA highlight rolloff is one of the reasons the image
+can feel painterly. Do not hard-clip it with aggressive contrast.
 
 ### Color
 
@@ -197,7 +236,8 @@ Candle-like light is not simply orange. It contains:
 - Green contamination from walls, fabrics, or mixed fixtures.
 - Cooler shadows when the eye adapts away from the flame.
 
-The grade should keep warmth local. If the whole image becomes orange, the light stops feeling like a source and starts feeling like a filter.
+The grade should keep warmth local. If the whole image becomes orange, the light
+stops feeling like a source and starts feeling like a filter.
 
 ---
 
@@ -230,7 +270,8 @@ Purpose: bring ARRIRAW into the working color space without imposing the look.
 Do:
 
 - Confirm LogC3/ALEXA Wide Gamut.
-- Work in DaVinci Wide Gamut Intermediate or an equivalent scene-referred pipeline.
+- Work in DaVinci Wide Gamut Intermediate or an equivalent scene-referred
+  pipeline.
 - Use raw exposure only for true global correction.
 - Keep the image flatter than final.
 
@@ -260,7 +301,9 @@ Ask:
 
 For each scene, set one exposure anchor. Then match shots around that anchor.
 
-Wide shots should not automatically be brighter because they were lit wider. If they reveal too much wall, lower the background locally instead of pulling the whole shot down and losing the actors.
+Wide shots should not automatically be brighter because they were lit wider. If
+they reveal too much wall, lower the background locally instead of pulling the
+whole shot down and losing the actors.
 
 ---
 
@@ -278,10 +321,12 @@ Use a combination of:
 ### Practical Method
 
 1. Open waveform.
-2. Identify the darkest important subject detail: hair edge, shoulder, hand, cheek shadow.
+2. Identify the darkest important subject detail: hair edge, shoulder, hand,
+   cheek shadow.
 3. Bring irrelevant background close to black.
 4. Keep subject-adjacent shadow barely alive.
-5. Do not let the entire lower waveform flatten into one hard line unless the shot is meant to become silhouette.
+5. Do not let the entire lower waveform flatten into one hard line unless the
+   shot is meant to become silhouette.
 
 ### Shadow Curve Shape
 
@@ -302,7 +347,8 @@ The toe should feel like darkness thickening, not like a digital guillotine.
 
 Purpose: keep human presence alive inside the darkness.
 
-In this film, faces and hands may be the only stable readable objects. Treat them as islands of attention.
+In this film, faces and hands may be the only stable readable objects. Treat
+them as islands of attention.
 
 Use:
 
@@ -324,7 +370,9 @@ Do not brighten faces globally. Shape them locally.
 
 ### Important
 
-Do not make both eyes equally readable unless the shot asks for that. Candle-like lighting often needs asymmetry. A face half-lost can be more truthful than a face corrected into evenness.
+Do not make both eyes equally readable unless the shot asks for that.
+Candle-like lighting often needs asymmetry. A face half-lost can be more
+truthful than a face corrected into evenness.
 
 ---
 
@@ -365,7 +413,8 @@ Skin:
 
 ### Common Failure
 
-If walls, wardrobe, skin, and shadows are all the same amber color, the grade has become a wash. Reduce global warmth and rebuild warmth locally.
+If walls, wardrobe, skin, and shadows are all the same amber color, the grade
+has become a wash. Reduce global warmth and rebuild warmth locally.
 
 ---
 
@@ -373,7 +422,8 @@ If walls, wardrobe, skin, and shadows are all the same amber color, the grade ha
 
 Purpose: reduce visible set/background information without harming actors.
 
-Use this for shots where lighting needed to be wider and the walls became too readable.
+Use this for shots where lighting needed to be wider and the walls became too
+readable.
 
 Tools:
 
@@ -402,15 +452,18 @@ Saturation: -5 to -15
 Midtone Detail: -5 to -15 if texture is too visible
 ```
 
-Never make the background look like a vignette pasted onto the frame. It should feel like light naturally dies before reaching the wall.
+Never make the background look like a vignette pasted onto the frame. It should
+feel like light naturally dies before reaching the wall.
 
 ---
 
 ## 07 WALL REMOVAL / ENDLESS SPACE
 
-Purpose: create the illusion that the room falls into infinite darkness behind the characters.
+Purpose: create the illusion that the room falls into infinite darkness behind
+the characters.
 
-This is more specific than background suppression. Use it when visible walls break the illusion of deep space.
+This is more specific than background suppression. Use it when visible walls
+break the illusion of deep space.
 
 ### The Endless Space Method
 
@@ -425,7 +478,8 @@ This is more specific than background suppression. Use it when visible walls bre
 
 ### Do Not Simply Crush the Wall
 
-Walls should disappear because light falls off, not because a black patch was placed on them.
+Walls should disappear because light falls off, not because a black patch was
+placed on them.
 
 Bad wall removal:
 
@@ -457,15 +511,19 @@ Good wall removal:
 11 Output
 ```
 
-Treat each visible wall plane separately if needed. One giant vignette rarely works on wide shots.
+Treat each visible wall plane separately if needed. One giant vignette rarely
+works on wide shots.
 
 ---
 
 ## 08 LOCAL CONTRAST AND TEXTURE
 
-Purpose: keep the image tactile without making darkness noisy or walls too visible.
+Purpose: keep the image tactile without making darkness noisy or walls too
+visible.
 
-Ultra Primes are clean and controlled. ARRIRAW is detailed. Dim art-film lighting often benefits from a small reduction in digital clarity, not extra sharpness.
+Ultra Primes are clean and controlled. ARRIRAW is detailed. Dim art-film
+lighting often benefits from a small reduction in digital clarity, not extra
+sharpness.
 
 Use:
 
@@ -476,15 +534,16 @@ Use:
 
 ### Starting Points
 
-| Problem | Move |
-|---------|------|
-| Skin too crisp | Midtone Detail -5 to -15 in a face/window node |
-| Walls too readable | Midtone Detail -10, slight blur, lower saturation |
-| Shadows noisy | Luma vs Sat down in shadows, temporal NR if necessary |
-| Image too clean/digital | Add subtle grain after contrast is set |
-| Image too soft | Do not sharpen globally; add local contrast only to faces/hands |
+| Problem                 | Move                                                            |
+| ----------------------- | --------------------------------------------------------------- |
+| Skin too crisp          | Midtone Detail -5 to -15 in a face/window node                  |
+| Walls too readable      | Midtone Detail -10, slight blur, lower saturation               |
+| Shadows noisy           | Luma vs Sat down in shadows, temporal NR if necessary           |
+| Image too clean/digital | Add subtle grain after contrast is set                          |
+| Image too soft          | Do not sharpen globally; add local contrast only to faces/hands |
 
-Do not sharpen the whole image. It will bring back the walls you are trying to lose.
+Do not sharpen the whole image. It will bring back the walls you are trying to
+lose.
 
 ---
 
@@ -492,7 +551,8 @@ Do not sharpen the whole image. It will bring back the walls you are trying to l
 
 Purpose: give the grade a coherent density after the shot-level work is done.
 
-This should be subtle. The film already has strong photographic ingredients: ARRIRAW, ALEXA rolloff, Ultra Primes, low light, and motivated warm sources.
+This should be subtle. The film already has strong photographic ingredients:
+ARRIRAW, ALEXA rolloff, Ultra Primes, low light, and motivated warm sources.
 
 Possible moves:
 
@@ -510,7 +570,8 @@ Avoid:
 - Crushed music-video contrast.
 - Uniform sepia.
 
-The look should feel like a negative interpreted with restraint, not a plugin laid over the image.
+The look should feel like a negative interpreted with restraint, not a plugin
+laid over the image.
 
 ---
 
@@ -526,7 +587,8 @@ For this film, shot matching must prioritize:
 4. Shadow density.
 5. Color temperature relationship between shots.
 
-Wide shots may have been lit differently from close shots. The grade should hide that production reality.
+Wide shots may have been lit differently from close shots. The grade should hide
+that production reality.
 
 ### Matching Wide Shots to Close Shots
 
@@ -539,7 +601,8 @@ When a wide shot feels over-lit:
 5. Add falloff so light feels motivated from the same candle/practical logic.
 6. Compare with the close shot in image wipe.
 
-The viewer should feel the same room and the same darkness, even if the wide shot was physically lit more.
+The viewer should feel the same room and the same darkness, even if the wide
+shot was physically lit more.
 
 ---
 
@@ -560,7 +623,9 @@ Check:
 - Background darkness survives compression.
 - Faces remain readable on a normal monitor.
 
-For very dark films, always test an H.264/H.265 export. A grade that looks beautiful in Resolve can fall apart when compressed if the shadows are noisy or too close to the codec floor.
+For very dark films, always test an H.264/H.265 export. A grade that looks
+beautiful in Resolve can fall apart when compressed if the shadows are noisy or
+too close to the codec floor.
 
 ---
 
@@ -570,7 +635,8 @@ Use this when the walls are visible but should feel like endless darkness.
 
 ### Step 1: Protect the Actors
 
-Before darkening anything, isolate the actors enough that the background work cannot damage them.
+Before darkening anything, isolate the actors enough that the background work
+cannot damage them.
 
 Options:
 
@@ -613,13 +679,16 @@ Each plane may need a different falloff.
 4. Blur very slightly if texture still calls attention.
 5. Add grain after, so the dark area does not become plastic.
 
-This order is important. If you blur first, the background may look like an effect. If you crush first, it may look artificial.
+This order is important. If you blur first, the background may look like an
+effect. If you crush first, it may look artificial.
 
 ### Step 5: Preserve Motivated Spill
 
-If a candle or practical would light the wall near the actors, keep a small amount of spill. The darkness should not contradict the light source.
+If a candle or practical would light the wall near the actors, keep a small
+amount of spill. The darkness should not contradict the light source.
 
-The trick is not "no wall." The trick is "the wall exists only where light plausibly reaches it."
+The trick is not "no wall." The trick is "the wall exists only where light
+plausibly reaches it."
 
 ### Step 6: Check Movement
 
@@ -672,17 +741,17 @@ False color can help separate:
 
 ## COMMON PROBLEMS AND FIXES
 
-| Problem | Likely Cause | Fix |
-|---------|--------------|-----|
-| Wide shots feel theatrical | Background/walls too visible | Darken wall planes separately, reduce saturation/detail |
-| Close shots feel rich but wides feel flat | Wides were lit for coverage | Match faces first, then suppress background |
-| Candlelight looks orange | Warmth applied globally | Reduce global warmth, add local source warmth |
-| Shadows look muddy brown | Too much saturation in low luma | Use Luma vs Sat to reduce shadow saturation |
-| Faces disappear | Whole image pulled down | Restore faces/hands locally, not globally |
-| Walls look like black patches | Windows too hard or too strong | Feather more, split planes, preserve spill |
-| Image feels digital | Too much sharpness/local contrast | Reduce Midtone Detail, add subtle grain |
-| Black is dead | Toe is too hard | Lift near-black slightly while keeping wall planes dark |
-| Shot matching feels wrong | Matching scopes instead of dramatic light | Match face, source direction, and background depth |
+| Problem                                   | Likely Cause                              | Fix                                                     |
+| ----------------------------------------- | ----------------------------------------- | ------------------------------------------------------- |
+| Wide shots feel theatrical                | Background/walls too visible              | Darken wall planes separately, reduce saturation/detail |
+| Close shots feel rich but wides feel flat | Wides were lit for coverage               | Match faces first, then suppress background             |
+| Candlelight looks orange                  | Warmth applied globally                   | Reduce global warmth, add local source warmth           |
+| Shadows look muddy brown                  | Too much saturation in low luma           | Use Luma vs Sat to reduce shadow saturation             |
+| Faces disappear                           | Whole image pulled down                   | Restore faces/hands locally, not globally               |
+| Walls look like black patches             | Windows too hard or too strong            | Feather more, split planes, preserve spill              |
+| Image feels digital                       | Too much sharpness/local contrast         | Reduce Midtone Detail, add subtle grain                 |
+| Black is dead                             | Toe is too hard                           | Lift near-black slightly while keeping wall planes dark |
+| Shot matching feels wrong                 | Matching scopes instead of dramatic light | Match face, source direction, and background depth      |
 
 ---
 
@@ -700,7 +769,8 @@ False color can help separate:
 10. Test export compression.
 11. Do final shot-matching pass.
 
-Do not grade every shot vertically from raw to finished. Work horizontally by scene:
+Do not grade every shot vertically from raw to finished. Work horizontally by
+scene:
 
 1. Exposure anchors for all shots.
 2. Black floor for all shots.
@@ -743,4 +813,3 @@ Ask:
 The target is not a technically perfect image.
 
 The target is a controlled darkness that feels inevitable.
-
