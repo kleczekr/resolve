@@ -2821,6 +2821,408 @@ N14: Under-Eye Fix (Power Window, reduce contrast)
 
 ---
 
+## RENDERING, CACHING, AND PERFORMANCE
+
+This section explains the different ways to pre-render footage in Resolve, when to use each, and how to protect expensive work like Magic Mask tracking.
+
+---
+
+## UNDERSTANDING THE THREE OPTIONS
+
+Render Cache, Render in Place, and Final Render are three different operations with different purposes.
+
+| Option | What It Does | Files Created | Portability | Use Case |
+|--------|--------------|----------------|-------------|----------|
+| Render Cache | Pre-renders for smooth playback | `.dvcc` files in cache folder | Local only | Day-to-day editing |
+| Render in Place | Bakes effects into a new media file | Actual video files such as ProRes or DNxHR | Portable | Protecting work and collaboration |
+| Final Render | Exports from the Deliver page | Final deliverable | Portable | Client delivery |
+
+---
+
+## RENDER CACHE
+
+**What it is:** Resolve pre-renders clips in the background so playback is smooth.
+
+**Location:** Playback -> Render Cache -> Smart or User
+
+```
+SMART MODE:
+- RED line = needs caching
+- BLUE line = cached, will play smoothly
+
+USER MODE:
+- Right-click clip -> Render Cache Color Output -> On
+```
+
+**Key points:**
+
+- Cache files are `.dvcc` files, usable only by Resolve and only on your machine.
+- If you clear cache, move the project, or lose the cache drive, you lose the cache.
+- Cache is not used in final export by default.
+- Good for day-to-day smooth editing.
+- Bad for protecting expensive work such as hour-long Magic Mask tracks.
+
+**Cache format setting:** Project Settings -> Master Settings -> Optimized Media and Render Cache -> Render Cache Format
+
+| Format | When to Use |
+|--------|-------------|
+| DNxHR SQ | General work, good quality/size balance |
+| DNxHR HQX (10-bit) | Better quality, larger files |
+| ProRes 422 HQ | Mac users, good quality |
+| ProRes 4444 / DNxHR 444 | When you need to preserve alpha channels |
+
+**Warning:** Render Cache can be fragile. Magic Mask data is stored in cache. If cache is cleared, corrupted, or the project is moved, Magic Mask may need to re-track. This is why Render in Place or an external matte is safer.
+
+---
+
+## RENDER IN PLACE
+
+**What it is:** Creates actual video files with effects baked in and replaces the timeline clips with those files.
+
+**Location:** Edit page -> Select clip(s) -> Right-click -> Render in Place
+
+Render in Place creates real video files you can move to another computer, share with collaborators, and keep as a backup. It is reversible: right-click the rendered clip and choose **Decompose to Original** to restore the original clip with effects still present.
+
+| Option | Recommendation |
+|--------|----------------|
+| Include Video Effects | Yes, bakes Edit page effects |
+| Include Fusion Composition | Yes, bakes Fusion work |
+| Include Color Grading Effects | Careful, see below |
+| Add Handles | Yes, 10 frames for flexibility |
+| Use Source Resolution | Yes, preserves quality |
+
+### The Include Color Grading Decision
+
+- Check **Include Color Grading Effects** if you want to permanently bake your grade.
+- Uncheck it if you want to grade on top of the rendered file and keep flexibility.
+- For podcast Magic Mask work, usually uncheck color grading if you want to keep grading flexibility after baking edit/Fusion work.
+
+### Codec Choice for Render in Place
+
+| Platform | Standard Work | With Alpha Channel |
+|----------|---------------|--------------------|
+| Mac | ProRes 422 HQ | ProRes 4444 |
+| Windows/Linux | DNxHR HQX (10-bit) | DNxHR 444 (12-bit) |
+
+---
+
+## THE MAGIC MASK PROTECTION PROBLEM
+
+The problem: you spend an hour tracking a Magic Mask, and the tracking data lives in cache. If anything goes wrong with that cache, you lose the tracking work.
+
+| Tool | Where Tracking Is Stored | Survives Project Close/Reopen? | Survives Cache Clear? |
+|------|--------------------------|--------------------------------|-----------------------|
+| Face Refinement | Project database | Yes | Yes |
+| Magic Mask | Cache folder | Yes, if cache is intact | No |
+
+Face Refinement tracking is stored in the project database. Magic Mask tracking is stored in the cache folder. If you clear render cache, move the project to another computer, corrupt the cache, or lose the cache drive, Magic Mask may need to re-track from scratch.
+
+**Conclusion:** Face Refinement is relatively safe. Magic Mask needs protection via Render in Place or an external matte export.
+
+---
+
+## PROTECTING MAGIC MASK: SIMPLE METHOD
+
+Use **Render in Place** if you just want to bake everything and move on, and you do not need independent person/background adjustment later.
+
+Current node setup:
+
+```
+[Source] -> [Node 1: Magic Mask - person adjustments]
+              |
+              v
+           [Node 2: background adjustments - inverted key]
+```
+
+### Steps
+
+1. Go to the Edit page with `Shift + 4`.
+2. Select the full source clip with Magic Mask applied.
+3. Right-click -> Render in Place.
+4. Use these settings:
+
+```
+Format: QuickTime
+Codec: ProRes 422 or DNxHR HQX
+
+Include Video Effects: checked
+Include Fusion Composition: checked
+Include Color Grading Effects: checked
+Add Handles: 0 frames, or 10 for safety
+Use Source Resolution: checked
+```
+
+5. Render to a clearly named file such as `Source_Graded_Baked.mov`.
+6. When done, Resolve replaces the timeline clip with the rendered file.
+
+The Magic Mask never needs to run again for that baked clip. You can clear cache or move the project and the grade remains permanent.
+
+If you need to change something later:
+
+1. Right-click the clip -> Decompose to Original.
+2. Make changes in the original node tree.
+3. Render in Place again.
+
+---
+
+## PROTECTING MAGIC MASK: FLEXIBLE METHOD
+
+Use an **External Matte** if you want to adjust person and background brightness/color later without re-tracking.
+
+Overview:
+
+1. Export only the mask as a black-and-white video.
+2. Delete or disable the Magic Mask node.
+3. Use the black-and-white video as a stencil for subject/background nodes.
+
+### Step 1: Make the Mask Visible as Black and White
+
+Your Magic Mask creates an invisible alpha channel. Convert it into visible black and white:
+
+1. Select the Magic Mask node.
+2. Add a new Serial Node with `Alt/Option + S`.
+3. Drag the Magic Mask node's blue alpha output to the new node's green RGB input.
+4. The viewer should show white for the person and black for the background.
+
+If you do not see black and white, select the new node, open the Key tab, and set **Key Output Gain** to `1.0`.
+
+### Step 2: Disable All Color Grading
+
+Bypass every grading node except the Magic Mask node and the new black-and-white matte node. The viewer should show only the black-and-white mask.
+
+### Step 3: Render the Matte Only
+
+1. Go to the Edit page.
+2. Select the clip.
+3. Right-click -> Render in Place.
+4. Use QuickTime with ProRes 422, DNxHR SQ, or even H.264 if the matte is only for black-and-white shape data.
+5. Check **Include Color Grading Effects**.
+6. Save as something clear, such as `Matte_Person.mov`.
+
+### Step 4: Restore the Original Clip
+
+1. Right-click the clip -> Decompose to Original.
+2. Re-enable your original grading nodes.
+3. Delete the temporary black-and-white matte output node.
+4. Delete or disable the Magic Mask node if the external matte is replacing it.
+
+### Step 5: Link the Matte to the Source Clip
+
+1. In the Media Pool, find the original source clip.
+2. Right-click -> Clip Attributes.
+3. Go to the Mattes tab.
+4. Click **Add Matte** or `+`.
+5. Select the rendered matte file.
+6. Click OK.
+
+### Step 6: Use the Matte in Nodes
+
+For person adjustments:
+
+1. Create or select a subject node.
+2. Open the Key tab.
+3. Choose the linked matte from the Matte dropdown.
+4. Adjustments now affect only the white areas.
+
+For background adjustments:
+
+1. Create a background node.
+2. Select the same matte.
+3. Click **Invert**.
+4. Adjustments now affect only the black areas.
+
+Final structure:
+
+```
+[Source] -> [Person Node + External Matte] -> [Background Node + Inverted Matte] -> [Output]
+```
+
+---
+
+## WHICH MAGIC MASK PROTECTION METHOD SHOULD YOU USE?
+
+| Situation | Use This Method |
+|-----------|-----------------|
+| Just want it done | Render in Place |
+| Do not need separate subject/background changes later | Render in Place |
+| Deadline tomorrow | Render in Place |
+| Client might request separate subject/background changes | External Matte |
+| Need long-term flexibility | External Matte |
+
+For most podcast work, Render in Place is usually enough. If the client asks for changes, decompose to original, adjust, and re-render. Use the external matte workflow when independent subject/background control must remain available.
+
+---
+
+## TROUBLESHOOTING: RENDER STUCK OR SLOW
+
+### Quick Fix: Render in Place
+
+Use this when a render is stuck and you need a reliable result.
+
+1. Cancel the stuck render.
+2. Go to the Edit page.
+3. Make sure you are on the full source timeline, not a cut timeline with many edits.
+4. Select the clip with Magic Mask.
+5. Right-click -> Render in Place.
+6. Use QuickTime with ProRes 422 or DNxHR HQX.
+7. Check Video Effects, Fusion Composition, Color Grading Effects, and Use Source Resolution.
+8. Render.
+
+After Render in Place, playback and final export should be fast because Magic Mask computation is baked into the rendered file.
+
+### If Render in Place Also Re-Tracks
+
+Your cache is probably lost. Options:
+
+1. Let it re-track, then Render in Place immediately after tracking completes.
+2. If tracking is corrupted, re-track manually, then Render in Place immediately.
+
+Prevention: Render in Place right after a successful Magic Mask track, before clearing cache or moving the project.
+
+### GPU Acceleration Check
+
+If renders are extremely slow, check:
+
+**DaVinci Resolve -> Preferences -> System -> Memory and GPU**
+
+| Setting | What to Check |
+|---------|---------------|
+| GPU Processing Mode | CUDA for NVIDIA, OpenCL for AMD, Metal for Mac; avoid Auto if troubleshooting |
+| GPU Selection | Make sure the dedicated GPU is selected |
+
+### Magic Mask Re-Computation During Deliver Render
+
+Deliver page may recompute Magic Mask even if it was already tracked.
+
+Symptoms:
+
+- Render starts but shows no progress for 10+ minutes.
+- Render is absurdly slow compared to similar projects.
+- GPU usage is maxed out.
+
+Solutions:
+
+1. In Deliver page -> Video tab -> Advanced, check **Use render cached images**.
+2. Pre-cache the timeline: Playback -> Render Cache -> Smart, then wait for the timeline to turn blue before rendering.
+3. Render in Place first, then final export from the baked file.
+
+### Render Stuck Diagnostic
+
+1. Set In/Out points around 10 seconds of footage.
+2. Try to render only that section.
+3. If 10 seconds takes forever, the problem is likely Magic Mask computation.
+4. If 10 seconds renders quickly, the problem may be a specific section of the timeline.
+
+### Slow ProRes Renders
+
+ProRes itself encodes quickly. If ProRes renders are slow:
+
+- Magic Mask is probably being recomputed.
+- GPU acceleration may not be enabled correctly.
+- Cache may be on a slow drive.
+- Try Playback -> Delete Render Cache -> All, then re-cache and render again.
+
+---
+
+## WHICH TIMELINE TO RENDER?
+
+If you have a one-hour podcast cut into many clips, and Magic Mask was tracked on a separate full-source timeline, render the **full source timeline**, not the cut timeline.
+
+Why:
+
+1. Continuous tracking stays intact.
+2. One master file is cleaner than many rendered fragments.
+3. The rendered full clip can preserve source timecode, so cuts still reference the correct frames.
+
+Workflow:
+
+1. Full Source Timeline: apply Magic Mask, track, grade or export matte.
+2. Cut Timeline: use the rendered source or linked external matte.
+
+---
+
+## THE BAKING TRAP
+
+If you Render in Place with all effects and color grading, subject brightness and background brightness become one video layer. You can no longer adjust them independently.
+
+To keep flexibility:
+
+- Render only the matte.
+- Render with alpha.
+- Render in Place without color grading, then grade the rendered file.
+
+---
+
+## CODEC SPEED COMPARISON
+
+H.264 and H.265 are delivery codecs: highly compressed, small, and slow to encode. ProRes and DNxHR are intermediate/editing codecs: larger, faster, and easier to work with.
+
+| Codec | Encode Speed | File Size | Use Case |
+|-------|--------------|-----------|----------|
+| H.264 | Slow | Small | Final delivery only |
+| H.265/HEVC | Very slow | Smaller | Final delivery only |
+| ProRes 422 HQ | Fast | Large | Intermediate/editing |
+| DNxHR HQX | Fast | Large | Intermediate/editing |
+| ProRes 4444 | Fast | Very large | When you need alpha |
+
+**Rule:** Use ProRes or DNxHR for intermediate work. Use H.264/H.265 only for final client delivery.
+
+---
+
+## RENDER SETTINGS QUICK REFERENCE
+
+### Render Cache
+
+```
+Format: DNxHR SQ, or ProRes 422 on Mac
+Location: Fast SSD, not your system drive
+```
+
+### Render in Place to Protect Magic Mask
+
+```
+Format: QuickTime
+Codec: DNxHR HQX, or ProRes 422 HQ on Mac
+Include Video Effects: yes
+Include Fusion: yes
+Include Color Grading: no, unless you want to bake it
+Add Handles: 10 frames
+Use Source Resolution: yes
+```
+
+### Matte Export
+
+```
+Format: QuickTime or MP4
+Codec: DNxHR SQ, ProRes 422, or H.264
+Resolution: match source/timeline when possible
+```
+
+### Final Delivery
+
+```
+Format: MP4
+Codec: H.264 or H.265
+Quality: 20-35 Mbps for web, higher for broadcast
+```
+
+---
+
+## CLOUD GPU RENDERING
+
+For one-off projects, cloud GPU rendering is usually not worth the setup time.
+
+It makes sense for regular high-volume work, extremely long renders, or severely underpowered local hardware.
+
+Simpler alternatives:
+
+1. Render overnight.
+2. Use proxies while editing, then render full resolution at the end.
+3. Render an intermediate ProRes/DNxHR file, then transcode to H.264 separately.
+4. Use Playback -> Timeline Proxy Mode -> Half or Quarter resolution while editing.
+
+---
+
 ## FINAL TRUTH
 
 A good grade is not noticed.
