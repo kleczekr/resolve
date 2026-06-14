@@ -122,14 +122,14 @@ Use Blender for:
 This workflow assumes:
 
 - The shot is live-action ARRIRAW.
-- The actor’s head moves slightly.
-- The camera may be static or gently moving.
-- The existing wound is already visible.
-- We need to enhance the wound with **more dimensional blood**, not create the entire wound from scratch.
-- The blood is mostly attached to the head, not a large active splatter/gush event.
+- **The head is tilted ~90° (actor lying on their side); the wound is on the temple.** This matters for the blood physics: gravity pulls droplets **off** the temple and they **fall away** — they do not run down the face. This is a *dripping* shot, not a *run-down-a-surface* shot (see Sections 10.5–10.6).
+- **Motion is minimal — a slow in-breath, mostly visible in the chest, with only tiny head movement.** The camera is essentially static.
+- **Decision: we are NOT stabilizing.** The motion is too small to be worth the risk of making a living actor look artificial. We keep the natural micro-movement and **match-move** the blood to it instead (Approach A, Section 7). The footage may be **slightly slowed** (retime) as a creative choice. The minor wound-position drift can be handled with **a little Transform keyframing in comp at the end** if needed — not with a stabilize pass.
+- The existing wound is already visible but **under-dressed**: there is only a small amount of practical blood and a few drops already dripping in the footage. We need to (a) make the wound read as more **extensive / open**, and (b) add a clearly **active blood flow** — fresh blood welling from the wound and dripping off the temple during the shot.
+- Because active flow is a requirement, this shot **does** escalate to fluid simulation (see Section 10.5). The general "you rarely need a fluid sim" guidance further down does **not** apply here — active dripping is a story beat, not a stain.
 - The final shot will be graded in Resolve after the VFX comp.
 
-If the shot has extreme camera movement, heavy motion blur, fast head movement, strong occlusion, or long flowing blood simulation, the workflow becomes more complex.
+If the shot has extreme camera movement, heavy motion blur, fast head movement, or strong occlusion, the workflow becomes more complex. None of those apply here — the only real technical care item is getting **gravity orientation** right for the dripping (Section 10.6), which is straightforward now that we are *not* stabilizing.
 
 ---
 
@@ -240,7 +240,28 @@ vfx/
 
 ---
 
+### 6.4 If You Slow the Footage Down
+
+You're considering a slight slow-down. That's a fine creative choice, but decide it **before** simulating, because it sets the timebase everything else must share.
+
+```text
+Lock the final speed first, then sim and track against the ALREADY-retimed plate.
+```
+
+Why: the blood sim, the head track, and the plate all have to live on one timeline. If you sim at normal speed and then slow the plate in comp, the blood drips at the wrong (too-fast) rate and the track no longer lines up.
+
+Two clean ways to handle it:
+
+- **Preferred — retime the plate first, export the retimed EXR sequence, then track and sim against that.** Everything is simply "real-time" relative to that plate. Simplest to keep in sync.
+- **Alternative — sim and render at normal speed, then slow the rendered blood by the same factor as the plate.** Workable, but for a *dripping* sim, slow-motion liquid is unforgiving: if you stretch normal-speed drops, surface tension and the pinch-off will look wrong. If the final look is noticeably slowed, it's better to sim slow from the start (lower inflow rate, let the solver resolve the slow neck) than to retime fast drops down.
+
+For a *slight* slow-down the difference is small; for anything dramatic, sim it slow natively.
+
+---
+
 ## 7. Tracking and Stabilizing the Head in Fusion
+
+> **Decision for this shot: NOT stabilizing.** The motion is just a slow in-breath (mostly chest, tiny head movement). Stabilizing a barely-moving living actor risks making them look artificial — the cure would be worse than the disease. So we use **Approach A (match-move)** below: keep the natural micro-movement, track the small head motion, and ride the blood on it. Any residual wound-position drift gets a touch of manual Transform keyframing in comp at the very end. **Sections 7.3–7.6 are kept for reference** (and in case the body-steadying question comes back), but they are not part of the plan for this shot.
 
 The actor’s head is moving slightly, so the blood needs to follow the head.
 
@@ -355,6 +376,110 @@ Not ideal for:
 - curved surfaces
 - soft skin with few contrast points
 - strong rotation
+
+---
+
+### 7.3 Two Different Stabilization Goals — Keep Them Separate
+
+There are two reasons you might stabilize, and conflating them causes most of the pain.
+
+```text
+Goal 1 — VFX alignment (the wound):
+    Temporarily neutralize head motion so blood is easy to design,
+    align, and simulate. Motion is RESTORED before final output.
+    Nobody ever sees the stabilized version.
+
+Goal 2 — Final look (the body):
+    Deliberately make the actor steadier in the FINISHED shot
+    because the footage is too shaky / too alive / too restless.
+    The audience DOES see the result.
+```
+
+Goal 1 is covered by Approach B in Section 7 and by Section 8. It is safe, standard, and reversible.
+
+Goal 2 — your "magic-mask the body, put it on a top layer, freeze it" idea — is a creative decision with real traps. Read 7.4 before committing to it.
+
+---
+
+### 7.4 The Magic-Mask Freeze-Frame Idea — and Its Traps
+
+Your instinct:
+
+```text
+Magic Mask the body
+→ promote it to a top layer
+→ freeze-frame it (hold a single frame)
+→ optionally scale it up slightly so motion stops mattering
+→ comp it back over the (possibly still-moving) background
+```
+
+This *can* work, but understand what you are actually doing: you are turning a living person into a **photograph** and laying it over live footage. That is exactly where it tends to break:
+
+- **Frozen grain / frozen noise.** A held frame holds its grain too. The body becomes a still texture while the background keeps shimmering. This is the single biggest giveaway. If you freeze, you **must** strip the baked grain and add fresh *moving* grain on top.
+- **Edge / matte crawl mismatch.** Magic Mask edges wander frame to frame. Freeze the matte and the background keeps moving — so the seam between frozen subject and live plate slides and breathes. The silhouette edge is where the eye goes first.
+- **Lost light interaction.** Passing shadows, flicker, bounce, atmosphere — none of it lands on a frozen subject anymore. If anything in the scene changes the light, the frozen body ignores it and reads as pasted-in.
+- **The "embalmed" look.** A completely still living person is uncanny. Zero breath, zero weight shift, zero micro-tension reads as *dead*, not *calm* — which, for a gunshot-wound shot, may even be the wrong kind of unsettling.
+- **Scale-up softness / parallax.** Enlarging the frozen body to outrun motion changes its perspective and softens it relative to the plate, and it no longer lines up with contact points (where the body meets ground, props, other actors).
+
+So: a hard freeze is the **highest-risk** option, not the easy one. Reserve it for a genuine "frozen moment" creative beat — and even then, re-inject life (see 7.5).
+
+---
+
+### 7.5 Preferred: Stabilize, Don't Freeze — and Preserve Micro-Movement
+
+You were right to suspect that micro-movements beat a static image. They almost always do. The better tools sit *between* "raw shaky footage" and "dead still":
+
+**Option A — Smoothed / damped stabilization (recommended for the look).**
+Track the body/head and remove the *gross, unwanted* motion (drift, sway, jitter) while **keeping** breathing and micro-tension. In Fusion this is a Tracker in *Match Move → Stabilize* mode with the stabilization **strength/smoothing dialed below 100%**, or a Planar Tracker stabilize feeding a Transform you partially back off. On Resolve's Color page the Stabilizer has a **Smooth** control and a **Strength** slider — lower strength keeps life, higher strength approaches lock-down. This gives "steadier, still alive."
+
+**Option B — Stabilize-for-work, then restore (recommended for the blood).**
+This is Approach B already in the doc. Neutralize motion only while you design/sim/align the blood, then **re-apply the exact inverse transform** so the final image has all its original motion back. The blood inherits the motion; the actor keeps every micro-movement because you never threw it away.
+
+**Option C — Hard freeze, but faked back to life (only if you truly want a held moment).**
+If you still want the frozen-body look:
+- Strip baked grain; add fresh moving grain/noise over the frozen layer.
+- Add a tiny animated breathing motion: a subtle, slow Transform or a gentle Warp/Dent oscillation on the chest/shoulders (a few pixels, ~0.2–0.4 Hz).
+- Keep *something* live if you can roto it — eyes, a hair edge, a wisp — so the frame isn't 100% inert.
+- Re-introduce any moving light/shadow over the frozen layer as an animated multiply.
+
+In order of how natural they look: **A ≈ B  >  C**. Don't reach for C unless the still-moment is the point.
+
+---
+
+### 7.6 Where to Stabilize: Resolve Color Page vs Fusion
+
+Both live inside Resolve; pick by task.
+
+```text
+Resolve Color page:
+    - Magic Mask (DaVinci Neural Engine) to isolate the body/person — best place for the mask itself.
+    - Stabilizer (Tracker palette: Perspective / Similarity / Translation,
+      plus Smooth + Strength) for quick whole-frame or region steadying.
+    - Magic Mask v2 / Depth Map can help generate occlusion mattes for the comp.
+    - Good for: fast look-stabilization, generating the body matte, grade.
+
+Fusion (recommended for the VFX-grade work):
+    - Planar Tracker / Tracker → precise region stabilization and, crucially,
+      the ability to RE-APPLY the inverse transform later (stabilize → work → restore).
+    - MatteControl / roto / Delta keyer to refine the Magic Mask edge.
+    - TimeStretcher / Hold-frame node if you genuinely freeze a layer.
+    - Merge stack to recombine frozen/stabilized body over live background.
+    - Good for: stabilize-and-restore, freeze-frame recombines, edge work.
+```
+
+Rule of thumb: **generate the body matte with Magic Mask (Color page), but do the actual stabilize / freeze / recombine in Fusion**, because only Fusion gives you clean control over re-applying motion and managing the seam between a treated subject and a live background.
+
+If you go the freeze route, your Fusion stack is roughly:
+
+```text
+MediaIn plate
+→ Magic Mask matte (imported from Color page or rebuilt with roto)
+→ split: [body layer]  +  [background layer]
+→ body layer: Hold-frame → strip grain → add fresh grain → subtle breathing warp
+→ Merge body over background
+→ re-grain whole frame lightly to marry the seam
+→ MediaOut
+```
 
 ---
 
@@ -626,35 +751,133 @@ Drips should follow gravity in the shot. If the head is tilted, gravity does not
 
 ---
 
-### 10.4 Do You Need Fluid Simulation?
+### 10.4 Do You Need Fluid Simulation? — For This Shot, Yes
 
-Usually, no.
+The general rule below still holds for *most* wound-enhancement work, but **this shot is the exception**: we specifically want fresh blood **actively welling and dripping** from an enlarged wound. Active liquid motion is a story beat here, so we escalate to a real fluid simulation (Section 10.5).
 
-Use fluid sim only if:
+Use fluid sim when (all true for us):
 
-- blood visibly flows during the shot
-- a fresh gush happens
-- a drip grows over time
-- liquid motion is a story point
-- the camera is close enough for fluid motion to be seen
+- blood visibly flows during the shot ✔ (we want this)
+- a fresh well/run develops over time ✔
+- liquid motion is a story point ✔
+- the camera is close enough for fluid motion to be seen ✔
 
-For a wound enhancement shot, hand-built geometry is usually better:
+For a *static* wound stain, hand-built geometry is still better (easier to direct, revise, match, render). So the smart approach is **hybrid**:
 
-- easier to direct
-- easier to revise
-- easier to match to the prosthetic
-- faster to render
-- less technically fragile
+```text
+Hand-built geometry  →  the static wound mass, clots, and pooled blood
+Fluid simulation     →  the active welling + running drips on top
+Existing practical drops in the footage  →  match to, don't fight
+```
 
-If you need motion, fake it first:
+Do **not** simulate the whole thing. Simulate only the moving part. Keep the congealed wound bed as art-directed geometry (Sections 10.1–10.3) and let the sim ride on top of it.
 
-- animate drip scale
-- animate a bead moving down a curve
+Before committing to a full sim, it is still worth trying **faked motion** for any drips that don't need to interact:
+
+- animate a bead moving down a curve (a path-following sphere with a stretch)
+- animate drip length / reveal mask growing
 - animate material wetness
-- animate opacity/reveal mask
-- render 2–3 incremental blood states
+- render 2–3 incremental blood states and dissolve between them
 
-Only escalate to simulation if fake motion fails.
+Use the sim for the hero flow that has to behave like liquid; fake the secondary dribbles. That keeps the heavy, fragile part of the job as small as possible.
+
+---
+
+### 10.5 Active Blood Flow — Fluid Simulation (Mantaflow Liquid)
+
+Blender's built-in liquid solver is **Mantaflow** (Object → Quick Effects → Quick Liquid, or add a Fluid physics modifier). The whole job is: an **inflow** at the wound, a **domain** that contains the drip path, the **proxy head as a collision (effector)** so blood wells against the temple before it detaches, and a **mesh** output you can shade and render with alpha.
+
+**This is a dripping shot, not a running shot.** Because the head is tilted ~90° and the wound is on the temple, blood doesn't run down the face — it **wells at the wound, forms a hanging (pendant) droplet, stretches, pinches off, and falls away** under gravity. That's a dripping-faucet simulation. The physics that matter most here are **surface tension** (holds the bead until its weight wins, then necks and pinches) and **enough resolution to resolve the thin neck** as the drop detaches. A low-resolution sim will drop fat round blobs with no neck and look fake.
+
+**The droplets only fall a short distance and leave frame** — they don't land on anything in shot. This is the easy version: no landing surface, no splash, no secondary spatter to worry about. The hero moment is entirely at the wound — the well, the hang, and the pinch-off — plus the first few cm of fall before the drop exits frame. Keep your effort (and your resolution) concentrated there.
+
+**Enlarging the wound first.** The wound is too small as shot, so before simulating, build the bigger source: expand the opening with projected texture / matte paint, add a little displacement to suggest a deeper cavity, and darken the interior. The fluid **inflow** then emits from inside this enlarged wound so the blood reads as coming *out of* the wound, not appearing on the skin.
+
+**Core setup:**
+
+```text
+Domain (cube):
+    - Just needs to contain the wound + the short fall path to the edge of frame.
+      It can be small and tight — drops leave frame almost immediately, so don't
+      waste a tall domain (and the voxels) on fall distance you'll never see.
+    - Fluid → Type: Domain → Domain Type: Liquid
+    - Enable Adaptive Domain (Resize) so the box follows the fluid and you don't waste voxels.
+
+Inflow (small object inside the wound):
+    - Fluid → Type: Flow → Flow Type: Liquid → Behavior: Inflow
+    - Keep the flow rate LOW and sustained → blood wells slowly and drips at intervals,
+      rather than pouring. A low inflow is what produces discrete droplets.
+    - Keyframe it on/off for the bleeding window.
+
+Effector (the proxy head):
+    - Fluid → Type: Effector → Effector Type: Collision
+    - Surface Thickness small but non-zero so thin blood doesn't leak through.
+    - Here it makes blood pool/cling at the temple wound before a drop detaches and falls.
+
+No landing surface needed:
+    - Drops fall a short distance and leave frame. Let them simply exit the bottom
+      of the domain. No collision plane, no splash, no spatter.
+
+Gravity:
+    - Scene gravity (true world-down) drives the drip. Orientation note in Section 10.6.
+```
+
+**Settings that actually matter for this drip:**
+
+- **Resolution Divisions.** The detaching neck of a droplet is *thin*. Too-low resolution = fat blobby drops with no neck, no pinch, no realism. Push resolution up (main cost) and keep the domain tight around the wound + fall path. Block out at low res, then raise it for the final cache.
+- **Surface Tension.** The single most important setting for dripping. It's what makes the bead hang, neck, and pinch off. Tune it so drops form and release at a believable size — too low and it sheets/strings, too high and everything balls into spheres.
+- **Viscosity.** Real blood is only mildly viscous (~3–4× water), but a little extra sells the slow, heavy, clinging weep and slows the drip cadence. Start moderate; too high and it crawls like honey, too low and it splashes like water.
+- **Solver.** Prefer **APIC** over FLIP — more stable, less random splash, cleaner droplet formation.
+- **Mesh.** Enable the domain's **Mesh** panel for a renderable surface. Raise Upres if the meshed droplets look blobby.
+- **Secondary Particles (optional, sparing).** A *couple* of fine flung droplets can read well if a drop hits something. Don't add foam — blood doesn't foam.
+- **Scale.** Mantaflow is **scale-sensitive**. Set the domain's real-world size to head scale (a head is ~0.2 m, a droplet a few mm). Wrong scale = drops that float like a giant slow ocean or zip like mist, and the drip *cadence* (how often a drop falls) will be wrong. Get this right before tuning anything else.
+
+**Cache it:**
+
+```text
+Domain → Cache:
+    - Type: Modular or All
+    - Format: OpenVDB (Files) so it survives restarts and renders deterministically
+    - Set Frame Start/End to the shot range (+ a few pre-roll frames so flow has begun before the cut in)
+    - Bake Data → (Bake Mesh) → bake secondary particles last
+```
+
+Pre-roll matters: if the wound should already be bleeding when the shot starts, begin the inflow several frames **before** your first comp frame so there's flow on frame one rather than a sudden start.
+
+---
+
+### 10.6 Gravity & the 90° Tilt
+
+**Blood falls in world space, not head space.** With the head tilted ~90° on the temple, this is the whole ballgame: a droplet leaving the wound falls toward the **real ground**, which — relative to the head — is roughly *sideways/off the temple*, not "down the face." Get this backwards and the drops will look like they're defying gravity.
+
+Good news: **because we decided not to stabilize (Section 7), this is the easy case.** You build the proxy head in its real tilted orientation, leave scene gravity at default true world-down, and the sim just does the right thing — droplets pinch off the temple and fall toward the ground exactly as they should.
+
+```text
+Setup:
+    - Orient the proxy head to match the footage: ~90° tilt, wound on the temple, facing as shot.
+    - Leave scene gravity at world-down (default -Z).
+    - Frame the camera in Blender to match the plate, so "down the screen" in your render
+      matches "down" in the shot.
+
+Sanity check:
+    - Play the sim and confirm droplets fall the same direction the existing practical
+      drops fall in the footage. They must agree — that's your ground-truth reference.
+```
+
+> Note: the elaborate "counter-rotate gravity on a stabilized plate" warning that used to live here only applies if you stabilize. We aren't, so ignore it. The only thing to nail is matching the head's real-world tilt and the camera framing so screen-down equals world-down.
+
+---
+
+### 10.7 Wetting at the Wound (Minor Here)
+
+Because our droplets **fall away** rather than run down the face, the long wet trail this section was built around mostly doesn't apply. There's no streak down the cheek to stain — the blood leaves the temple and drops.
+
+What *does* still help, in a smaller way:
+
+- **A wet, glistening pool right at the wound** where blood wells before each drop releases — keep that area lowest-roughness and darkest-wettest so the source reads as fresh and liquid.
+- **A short residue** along the lip of the wound where blood briefly clings before pinching off — a small Dynamic Paint canvas patch (or just hand-painted wetness in the wound material) covers this. You do **not** need a full run-down-the-face trail.
+
+If you find a drop *does* briefly track across a bit of skin before detaching, you can still use Dynamic Paint (Canvas = proxy head, Brush = fluid/particles) to stain just that short path — but treat it as a small detail, not the hero element it would be in a run-down-the-face shot.
 
 ---
 
@@ -733,6 +956,27 @@ A little translucency can help on thin edges, but thick blood should mostly read
 
 ---
 
+### 11.5 Shading Dripping vs Static Blood Differently
+
+Now that part of the blood is *actively dripping*, it should not share one uniform material with the dried wound bed. Fresh falling blood and old settled blood look different:
+
+```text
+Fresh / dripping (the sim mesh — welling bead + falling droplets):
+    - brightest, wettest, lowest roughness, sharpest highlights
+    - slightly more translucent at the thin neck as a drop pinches off
+    - the droplet catches a clear, small specular glint
+
+Wet pooled (the welling mass at the wound):
+    - deep red, very glossy, dark in the mass — this is the freshest-reading spot
+
+Coagulated / static (hand-built clots, old stain):
+    - darker maroon/brown, higher roughness, duller
+```
+
+The key contrast for *live bleeding* is a **bright, wet, glossy welling pool and droplets** against the **darker, duller coagulated wound bed** around it. That difference — fresh-and-liquid sitting on old-and-set — is what sells it. (The Dynamic Paint wetness from 10.7 only matters for the small area right at the wound here, not a long trail.)
+
+---
+
 ## 12. Lighting the Blood in Blender
 
 Match the plate lighting.
@@ -781,6 +1025,17 @@ Specular pass, optional
 Shadow/contact pass, optional
 Cryptomatte/object mask, optional
 ```
+
+For the active-flow version, a few extra passes help in comp:
+
+```text
+Static wound/clot pass        (hand-built geometry — rarely changes)
+Flowing blood pass            (the Mantaflow mesh — the moving part)
+Wet-trail / wetmap pass       (Dynamic Paint stain on skin)
+Drip-tip specular pass        (so you can push the live glint separately)
+```
+
+Splitting the static wound from the moving flow lets you retime, dim, or hold the flow in comp without re-rendering the whole wound — very useful when the director says "a touch less blood" or "start the drip two frames later."
 
 If you are new to passes, start simple:
 
@@ -913,6 +1168,26 @@ Add grain/noise to the blood or to the final comp. Prefer matching the plate tex
 
 ---
 
+### 14.6 Timing the Flow and Marrying It to the Practical Drops
+
+The footage already has a few real drops. The CG flow must agree with them, not contend:
+
+- **Match the existing drops' speed and direction** — sample how fast the practical blood moves and aim the sim's run to match. Mismatched drip speeds between real and CG blood is an instant tell.
+- **Let the practical drops lead.** Where possible, have the new flow appear to originate the same drops the camera already caught, so they read as one event.
+- **Time the build with the action.** If the wound is fresh in-shot, ramp the flow on; if it's an existing wound, it should already be running on frame one (use the pre-roll from Section 10.5).
+- Because you rendered the flow as a separate pass (Section 13), you can slip its timing in comp with a TimeStretcher without touching the static wound.
+
+### 14.7 If You Used the Freeze-Frame Body Treatment
+
+If you took the Section 7.4/7.6 freeze route, the comp has one extra job: **marry the seam**. The blood now lives on a frozen (or stabilized) body over a live background.
+
+- Add fresh moving grain over the frozen body so it doesn't sit dead against the shimmering plate.
+- Watch the magic-mask edge against the moving background for crawl/sliding; hold or re-roto the matte if it breathes.
+- Make sure the blood's added grain/blur matches the *treated* body layer, not the untreated plate — they may differ.
+- Re-grain the whole frame lightly at the end to unify everything under one texture.
+
+---
+
 ## 15. Final Grade
 
 Once the comp is integrated, return to the Resolve Color page and grade the shot with the blood included.
@@ -943,6 +1218,20 @@ Do not judge only frame-by-frame.
 - Does it wobble independently?
 - Does it survive breathing motion?
 - Does it slide at the wound edge?
+
+### Drip (active blood)
+
+- Do droplets fall toward the **real ground** (off the temple), matching the existing practical drops? (See 10.6.)
+- Do drops **neck and pinch off**, or do they release as fat round blobs? (Resolution / surface tension.)
+- Is the drip **cadence** believable for the wound size — not too fast, not too regular?
+- Is the welling pool at the wound wet and glossy, and does the bleeding start/stop read with the action (no abrupt pop-on)?
+- If slowed: does the slow-motion liquid still look like liquid, or like stretched goo? (See 6.4.)
+
+### Motion / no-stabilize
+
+- Did the natural in-breath survive? (We chose NOT to stabilize — confirm the shot still feels alive.)
+- Does the blood track the small head motion without sliding or lagging?
+- If you keyframed wound position in comp: is it correcting drift, or fighting the track?
 
 ### Integration
 
@@ -1135,6 +1424,37 @@ Animated drip geometry first
 Fluid simulation only if necessary
 ```
 
+### Do we WANT active dripping? (this shot — yes)
+
+Use:
+
+```text
+Hybrid: hand-built static wound bed
+      + Mantaflow liquid sim for the active drip (10.5) — surface tension is king
+      + wet pool only at the wound (10.7), no run-down-face trail
+      + proxy head in its real 90° tilt, scene gravity = world-down (10.6)
+```
+
+### Head tilted 90°, wound on temple — which way does blood go?
+
+Use:
+
+```text
+Droplets pinch off the temple and FALL toward the real ground.
+They do NOT run down the face. Match the existing practical drops' direction.
+```
+
+### Do we want the body steadier in the final shot? (this shot — NO)
+
+Use:
+
+```text
+Decided against. Motion is just a slow in-breath; stabilizing risks an artificial look.
+Keep the micro-movement, match-move the blood (Approach A), and add a touch of
+manual Transform keyframing in comp only if the wound drifts (7. decision note).
+If a slight slow-down is wanted, lock that speed FIRST (6.4).
+```
+
 ### Is the head barely moving?
 
 Use:
@@ -1234,3 +1554,21 @@ That is the most controllable and realistic route for enhancing an existing guns
 
 - Blender Manual — Render transparency / film settings  
   https://docs.blender.org/manual/en/latest/render/cycles/render_settings/film.html
+
+- Blender Manual — Fluid simulation (Mantaflow) overview  
+  https://docs.blender.org/manual/en/latest/physics/fluid/index.html
+
+- Blender Manual — Liquid domain settings (resolution, viscosity, mesh, cache)  
+  https://docs.blender.org/manual/en/latest/physics/fluid/type/domain/liquid/index.html
+
+- Blender Manual — Fluid Effector / collision objects  
+  https://docs.blender.org/manual/en/latest/physics/fluid/type/effector.html
+
+- Blender Manual — Dynamic Paint (wetmap / stain trails)  
+  https://docs.blender.org/manual/en/latest/physics/dynamic_paint/index.html
+
+- Blackmagic Design — DaVinci Resolve Magic Mask  
+  https://www.blackmagicdesign.com/products/davinciresolve/color
+
+- Blackmagic Design — DaVinci Resolve Stabilizer (Color page tracker / Smooth + Strength)  
+  https://documents.blackmagicdesign.com/UserManuals/DaVinci-Resolve-20-Reference-Manual.pdf
