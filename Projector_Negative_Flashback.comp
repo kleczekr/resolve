@@ -1,0 +1,288 @@
+{
+	Tools = ordered() {
+		MediaIn1 = MediaIn {
+			NameSet = true,
+			Inputs = {
+				GlobalOut = Input { Value = 120, },
+				MediaSource = Input { Value = FuID { "MediaPool" }, },
+			},
+			ViewInfo = OperatorInfo { Pos = { -880, 0 } },
+		},
+		MediaIn2 = MediaIn {
+			NameSet = true,
+			Inputs = {
+				GlobalOut = Input { Value = 120, },
+				MediaSource = Input { Value = FuID { "MediaPool" }, },
+			},
+			ViewInfo = OperatorInfo { Pos = { -880, 180 } },
+		},
+		Projector_Insert_Transform = Transform {
+			NameSet = true,
+			Inputs = {
+				Center = Input {
+					SourceOp = "Insert_Center_Path",
+					Source = "Position",
+				},
+				Angle = Input {
+					SourceOp = "Insert_Angle",
+					Source = "Value",
+				},
+				Size = Input {
+					SourceOp = "Insert_Size",
+					Source = "Value",
+				},
+				Input = Input {
+					SourceOp = "MediaIn2",
+					Source = "Output",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { -640, 180 } },
+		},
+		Projector_Flicker_CC = ColorCorrector {
+			NameSet = true,
+			Inputs = {
+				Gain = Input {
+					SourceOp = "Flicker_Gain",
+					Source = "Value",
+				},
+				Gamma = Input { Value = 1.015, },
+				Saturation = Input { Value = 0.78, },
+				Input = Input {
+					SourceOp = "Projector_Insert_Transform",
+					Source = "Output",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { -420, 180 } },
+		},
+		Negative_Tint_CC = ColorCorrector {
+			NameSet = true,
+			Inputs = {
+				LiftRed = Input { Value = 0.015, },
+				LiftGreen = Input { Value = 0.005, },
+				LiftBlue = Input { Value = -0.01, },
+				GainRed = Input { Value = 1.07, },
+				GainGreen = Input { Value = 0.98, },
+				GainBlue = Input { Value = 0.90, },
+				Saturation = Input { Value = 0.68, },
+				Input = Input {
+					SourceOp = "Projector_Flicker_CC",
+					Source = "Output",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { -220, 180 } },
+		},
+		Gate_Weave_Transform = Transform {
+			NameSet = true,
+			Inputs = {
+				Center = Input {
+					SourceOp = "Gate_Weave_Center_Path",
+					Source = "Position",
+				},
+				Angle = Input {
+					SourceOp = "Gate_Weave_Angle",
+					Source = "Value",
+				},
+				Input = Input {
+					SourceOp = "Negative_Tint_CC",
+					Source = "Output",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { 0, 180 } },
+		},
+		Focus_Settle_Blur = Blur {
+			NameSet = true,
+			Inputs = {
+				Filter = Input { Value = FuID { "Fast Gaussian" }, },
+				XBlurSize = Input {
+					SourceOp = "Focus_Settle_Blur_Amount",
+					Source = "Value",
+				},
+				YBlurSize = Input {
+					SourceOp = "Focus_Settle_Blur_Amount",
+					Source = "Value",
+				},
+				Input = Input {
+					SourceOp = "Gate_Weave_Transform",
+					Source = "Output",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { 220, 180 } },
+		},
+		Memory_Over_Present_Merge = Merge {
+			NameSet = true,
+			Inputs = {
+				Blend = Input {
+					SourceOp = "Memory_Blend",
+					Source = "Value",
+				},
+				ApplyMode = Input { Value = FuID { "Screen" }, },
+				Background = Input {
+					SourceOp = "MediaIn1",
+					Source = "Output",
+				},
+				Foreground = Input {
+					SourceOp = "Focus_Settle_Blur",
+					Source = "Output",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { 460, 60 } },
+		},
+		Frame_Border_Background = Background {
+			NameSet = true,
+			Inputs = {
+				GlobalOut = Input { Value = 120, },
+				Width = Input { Value = 1920, },
+				Height = Input { Value = 1080, },
+				TopLeftRed = Input { Value = 0.95, },
+				TopLeftGreen = Input { Value = 0.52, },
+				TopLeftBlue = Input { Value = 0.16, },
+				TopLeftAlpha = Input {
+					SourceOp = "Frame_Border_Opacity",
+					Source = "Value",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { 220, 400 } },
+		},
+		Frame_Border_Rectangle = RectangleMask {
+			NameSet = true,
+			Inputs = {
+				Filter = Input { Value = FuID { "Fast Gaussian" }, },
+				MaskWidth = Input { Value = 0.86, },
+				MaskHeight = Input { Value = 0.78, },
+				BorderWidth = Input { Value = 0.035, },
+				Solid = Input { Value = 0, },
+			},
+			ViewInfo = OperatorInfo { Pos = { 20, 400 } },
+		},
+		Frame_Border_Merge = Merge {
+			NameSet = true,
+			Inputs = {
+				Blend = Input { Value = 1, },
+				Background = Input {
+					SourceOp = "Memory_Over_Present_Merge",
+					Source = "Output",
+				},
+				Foreground = Input {
+					SourceOp = "Frame_Border_Background",
+					Source = "Output",
+				},
+				EffectMask = Input {
+					SourceOp = "Frame_Border_Rectangle",
+					Source = "Mask",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { 700, 120 } },
+		},
+		MediaOut1 = MediaOut {
+			NameSet = true,
+			Inputs = {
+				Index = Input { Value = "0", },
+				Input = Input {
+					SourceOp = "Frame_Border_Merge",
+					Source = "Output",
+				},
+			},
+			ViewInfo = OperatorInfo { Pos = { 940, 120 } },
+		},
+	},
+	Modifiers = ordered() {
+		Insert_Center_Path = BezierSpline {
+			SplineColor = { Red = 247, Green = 144, Blue = 32 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0.05, RH = { 2, 0.05 }, Flags = { Linear = true } },
+				[6] = { 0.43, LH = { 4, 0.43 }, RH = { 8, 0.43 }, Flags = { Linear = true } },
+				[10] = { 0.515, LH = { 8.66666666666667, 0.515 }, RH = { 11.3333333333333, 0.515 }, Flags = { Linear = true } },
+				[14] = { 0.5, LH = { 12.6666666666667, 0.5 }, Flags = { Linear = true } },
+			},
+		},
+		Insert_Angle = BezierSpline {
+			SplineColor = { Red = 14, Green = 221, Blue = 144 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { -3.5, Flags = { Linear = true } },
+				[8] = { 1.2, Flags = { Linear = true } },
+				[14] = { 0, Flags = { Linear = true } },
+			},
+		},
+		Insert_Size = BezierSpline {
+			SplineColor = { Red = 255, Green = 255, Blue = 0 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 1.08, Flags = { Linear = true } },
+				[14] = { 1, Flags = { Linear = true } },
+			},
+		},
+		Flicker_Gain = BezierSpline {
+			SplineColor = { Red = 255, Green = 255, Blue = 255 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0.72, Flags = { Linear = true } },
+				[3] = { 1.20, Flags = { Linear = true } },
+				[6] = { 0.94, Flags = { Linear = true } },
+				[9] = { 1.08, Flags = { Linear = true } },
+				[13] = { 1.00, Flags = { Linear = true } },
+				[24] = { 1.03, Flags = { Linear = true } },
+				[36] = { 0.98, Flags = { Linear = true } },
+				[48] = { 1.02, Flags = { Linear = true } },
+				[60] = { 1.00, Flags = { Linear = true } },
+			},
+		},
+		Gate_Weave_Center_Path = BezierSpline {
+			SplineColor = { Red = 45, Green = 200, Blue = 255 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0.5, Flags = { Linear = true } },
+				[8] = { 0.503, Flags = { Linear = true } },
+				[16] = { 0.498, Flags = { Linear = true } },
+				[24] = { 0.501, Flags = { Linear = true } },
+				[32] = { 0.499, Flags = { Linear = true } },
+				[40] = { 0.502, Flags = { Linear = true } },
+				[48] = { 0.5, Flags = { Linear = true } },
+			},
+		},
+		Gate_Weave_Angle = BezierSpline {
+			SplineColor = { Red = 0, Green = 255, Blue = 0 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0, Flags = { Linear = true } },
+				[10] = { 0.18, Flags = { Linear = true } },
+				[20] = { -0.12, Flags = { Linear = true } },
+				[30] = { 0.08, Flags = { Linear = true } },
+				[40] = { -0.05, Flags = { Linear = true } },
+				[50] = { 0, Flags = { Linear = true } },
+			},
+		},
+		Focus_Settle_Blur_Amount = BezierSpline {
+			SplineColor = { Red = 180, Green = 180, Blue = 255 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 4.5, Flags = { Linear = true } },
+				[6] = { 2.5, Flags = { Linear = true } },
+				[14] = { 0.6, Flags = { Linear = true } },
+				[24] = { 0.25, Flags = { Linear = true } },
+			},
+		},
+		Memory_Blend = BezierSpline {
+			SplineColor = { Red = 255, Green = 0, Blue = 255 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0, Flags = { Linear = true } },
+				[4] = { 0.35, Flags = { Linear = true } },
+				[10] = { 0.72, Flags = { Linear = true } },
+				[18] = { 1, Flags = { Linear = true } },
+			},
+		},
+		Frame_Border_Opacity = BezierSpline {
+			SplineColor = { Red = 247, Green = 144, Blue = 32 },
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0, Flags = { Linear = true } },
+				[4] = { 0.55, Flags = { Linear = true } },
+				[12] = { 0.35, Flags = { Linear = true } },
+				[26] = { 0.08, Flags = { Linear = true } },
+				[48] = { 0.02, Flags = { Linear = true } },
+			},
+		},
+	}
+}

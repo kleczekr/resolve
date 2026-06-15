@@ -208,7 +208,7 @@ home-movie filter unless that is the explicit intention.
 
 Think:
 
-- Early/older colour print memory.
+- Eastmancolor / older colour print memory, not a modern vintage filter.
 - Slightly restrained palette.
 - Warm skin and practicals.
 - Softer contrast than modern digital.
@@ -218,6 +218,10 @@ Think:
 
 The 1960s can have optimism or fragility depending on the scene, but it should
 not feel slick.
+
+The practical target is a soft colour print feeling: creamy highlights, fine
+grain, held blacks, and colours that feel slightly rounded off. If the image
+looks like a clean digital shot with a warm LUT, it is not there yet.
 
 ### Tonal Shape
 
@@ -262,15 +266,64 @@ Reduce:
 
 ### Practical Node Moves
 
-1. In `ERA BASE CONTRAST`, use Custom Curves to soften the toe and shoulder.
-2. In `ERA PALETTE`, use Color Warper or Hue vs Sat to mute greens and strong
-   blues.
-3. Add a tiny warm bias to highlights, not the whole image.
-4. Let blacks sit slightly higher than the main art-film darkness if the montage
-   is memory-like.
-5. Add subtle grain, finer than 1970s if you want delicacy.
-6. Use Film Look Creator lightly: grain low/medium, halation very low, gate
-   weave almost none unless the sequence should feel archival.
+1. In `ERA BASE CONTRAST`, use Custom Curves to make a gentle S-curve. Pull the
+   lower toe down only a little, then lift the very bottom slightly if the blacks
+   become too modern. Round the upper shoulder so white fabric, windows, and skin
+   sheen do not snap to video white.
+2. In `ERA PALETTE`, use Color Warper or Hue vs Sat to reduce clean Sony blues
+   and bright greens. Keep blues softer and slightly cyan. Push greens toward
+   muted green/olive, but stop before they become yellow mud.
+3. Use HDR wheels or Log wheels to add a tiny warm bias to highlights only. Do
+   not warm the whole image with Offset unless the shot is truly too cold.
+4. Use Hue vs Sat to reduce red saturation before it becomes lipstick-red.
+   1960s reds should feel printed, not electric.
+5. Use Luma vs Sat to reduce saturation slightly in the deepest shadows. This
+   helps the image feel like older colour negative/print rather than clean
+   digital darkness.
+6. If the shot feels too sharp, reduce Midtone Detail slightly or add a tiny
+   amount of diffusion before grain. Do this before Film Look Creator.
+7. Add subtle grain, finer than 1970s. The grain should be felt in motion, not
+   seen as a special effect on a paused frame.
+8. Use Film Look Creator lightly. It should provide film behavior, not the whole
+   1960s look.
+
+### 1960s Film Look Creator Starting Point
+
+Use Film Look Creator after the contrast and palette nodes.
+
+Starting point:
+
+```
+Overall amount / blend: low, roughly 20-35%
+Grain: fine, low to low-medium
+Halation: very low
+Bloom: very low, only for motivated highlights
+Gate weave: off, or the smallest usable amount
+Vignette: very subtle, only if it supports the shot
+Saturation/print effect: restrained rather than faded
+```
+
+How to judge it:
+
+- Toggle the Film Look Creator node on and off. The shot should gain texture and
+  softness, not suddenly become a different grade.
+- If faces change hue when the node turns on, reduce the effect or protect skin
+  before it.
+- If the shot becomes "old footage" instead of "1960s memory," pull back gate
+  weave, bloom, and grain first.
+
+### 1960s Fast Recipe
+
+For a normal FX3 1960s montage shot:
+
+1. Normalize S-Log3/S-Gamut3.Cine cleanly.
+2. Build a soft print curve: gentle toe, rounded shoulder.
+3. Warm highlights slightly; keep shadows neutral or faintly cool.
+4. Mute greens and strong blues.
+5. Reduce red purity.
+6. Protect skin with a qualifier or gentle Hue vs Hue/Hue vs Sat correction.
+7. Add fine grain and very low halation in Film Look Creator.
+8. Watch in motion and remove anything that reads as a preset.
 
 ### 1960s Danger Signs
 
@@ -301,6 +354,9 @@ Think:
 - Less polished skin.
 
 This is not just "make it brown." It is a narrower, more grounded colour world.
+The practical target is a heavier Eastman/Kodak-style print memory: denser lower
+mids, dirtier whites, ochre/olive/tobacco bias, faded reds, and more texture
+than the 1960s.
 
 ### Tonal Shape
 
@@ -349,14 +405,66 @@ Reduce:
 ### Practical Node Moves
 
 1. In `ERA BASE CONTRAST`, add density in lower mids without crushing faces.
-2. In `ERA PALETTE`, use Hue vs Sat to reduce blues and clean greens.
-3. Use Hue vs Hue to push some greens toward olive, not yellow.
-4. Warm highlights slightly, but keep whites dirty rather than golden.
-5. Add more grain than 1960s.
-6. Add very low halation around practicals if present.
-7. Reduce Midtone Detail slightly if the FX3 image is too crisp.
-8. Consider a tiny amount of gate weave in Film Look Creator only if it supports
-   montage memory and does not distract.
+   Use Log/HDR midtone controls or a curve point around the lower-mid range. The
+   image should feel heavier, not simply darker.
+2. Pull the very top of the highlights down slightly or round the shoulder. The
+   1970s look should not have sparkling digital whites.
+3. In `ERA PALETTE`, use Hue vs Sat to reduce blues and clean greens. Pure blue
+   is usually the first colour that makes the shot feel modern.
+4. Use Hue vs Hue to push some greens toward olive, not yellow. If foliage,
+   clothing, or walls become mustard, you pushed too far.
+5. Move some reds toward faded red/brick. Do not let red objects stay clean and
+   synthetic.
+6. Warm highlights slightly, but keep whites dirty rather than golden. A dirty
+   cream white is better than a yellow white.
+7. Use Luma vs Sat to reduce saturation in shadows. Let environmental colour
+   contamination live in the mids, not as noisy chroma in the blacks.
+8. Reduce Midtone Detail or Texture Pop slightly if the FX3 image is too crisp.
+   This is especially important on skin, hair, fabric, and wall texture.
+9. Add more grain than 1960s, but keep the grain scale believable. The grain
+   should unify the montage; it should not hide bad matching.
+10. Add very low halation around practicals if present.
+11. Consider a tiny amount of gate weave in Film Look Creator only if it supports
+    montage memory and does not distract.
+
+### 1970s Film Look Creator Starting Point
+
+Starting point:
+
+```
+Overall amount / blend: low-medium, roughly 30-45%
+Grain: medium, more visible than 1960s
+Halation: low, only around motivated practicals or bright edges
+Bloom: low or off
+Gate weave: off to tiny
+Vignette: subtle to moderate if the shot benefits from heavier edges
+Saturation/print effect: muted, earthy, lower chroma
+```
+
+How to judge it:
+
+- Toggle the node while watching skin. Skin can be warmer and less polished, but
+  it must not become muddy.
+- If whites become urine-yellow, reduce warmth and rebuild the dirty-white feel
+  with lower saturation and softer contrast instead.
+- If the image becomes a brown wash, restore separation with controlled skin
+  warmth, a little coolness in shadows, or selective hue separation in Color
+  Warper.
+
+### 1970s Fast Recipe
+
+For a normal FX3 1970s montage shot:
+
+1. Normalize the camera image.
+2. Add lower-mid density.
+3. Restrain highlights and dirty the whites.
+4. Push greens toward olive and reds toward faded brick.
+5. Reduce pure blues.
+6. Keep skin warm but imperfect.
+7. Reduce digital crispness.
+8. Add medium grain and low halation in Film Look Creator.
+9. Compare against the 1960s look: this should feel heavier, earthier, and less
+   delicate.
 
 ### 1970s Danger Signs
 
@@ -408,6 +516,8 @@ look unless that is the point.
 - Neutral-to-cool shadows.
 - Controlled warm skin.
 - Crisp but not digital contrast.
+- Lower dirt than 1970s.
+- Highlights can be brighter, but still controlled.
 
 #### Moody Late-1980s
 
@@ -416,6 +526,8 @@ look unless that is the point.
 - Deeper blacks.
 - Lower saturation in backgrounds.
 - More pronounced separation between warm faces and cool space.
+- Stronger contrast than the 1960s/1970s, but not music-video gloss unless that
+  is the point.
 
 #### Analog Domestic 1980s
 
@@ -424,19 +536,91 @@ look unless that is the point.
 - Slightly warm whites.
 - Visible grain.
 - Lower sharpness.
+- More imperfect and intimate than the clean commercial version.
 
 ### Practical Node Moves
 
 1. Use the ALEXA material's natural rolloff. Do not over-process it to match
-   FX3.
-2. In `ERA BASE CONTRAST`, allow more contrast than 1960s/1970s.
-3. In `ERA PALETTE`, choose one of the palette options above.
-4. Use Color Warper to separate warm skin/practicals from cooler shadows if
-   using the moody look.
-5. Add grain, but less dirty than 1970s unless the footage asks for it.
-6. Use halation carefully around practicals.
-7. If using Film Look Creator, keep the film effects lower than the grade
+   FX3. Let the 1980s montage have a cleaner image base.
+2. In `ERA BASE CONTRAST`, allow more contrast than 1960s/1970s. Keep blacks
+   cleaner and more decisive, but do not crush detail that carries the scene.
+3. In `ERA PALETTE`, choose one palette lane and stay there for the sequence.
+   Do not mix clean commercial, moody late-1980s, and analog domestic cues in
+   the same montage unless the story requires that fracture.
+4. For clean commercial 1980s, use Color Warper or Hue vs Sat to let selected
+   reds/blues hold more saturation than the 1970s, while keeping skin controlled.
+5. For moody late-1980s, use Log/HDR wheels or Color Warper to cool shadows
+   toward cyan/blue and keep practicals/skin warm. This is the most useful lane
+   if the montage still needs to belong to the dark art-film world.
+6. For analog domestic 1980s, soften contrast, reduce sharpness, fade primaries
+   slightly, and allow more grain.
+7. Add grain, but less dirty than 1970s unless the footage asks for it.
+8. Use halation carefully around practicals. ALEXA already gives you a graceful
+   highlight base, so heavy halation can become decorative fast.
+9. If using Film Look Creator, keep the film effects lower than the grade
    itself. The ALEXA image already carries softness and highlight grace.
+
+### 1980s Film Look Creator Starting Point
+
+Choose the lane first, then set Film Look Creator.
+
+Clean commercial 1980s:
+
+```
+Overall amount / blend: low, roughly 15-30%
+Grain: low to low-medium
+Halation: very low to low
+Bloom: low to medium only on motivated highlights
+Gate weave: off
+Vignette: off or very subtle
+Saturation/print effect: cleaner, stronger, but controlled
+```
+
+Moody late-1980s:
+
+```
+Overall amount / blend: low to low-medium, roughly 20-35%
+Grain: low-medium
+Halation: low around practicals
+Bloom: low, mostly for warm light sources
+Gate weave: off
+Vignette: subtle if it helps deepen the frame
+Saturation/print effect: cooler shadows, warm practicals, controlled skin
+```
+
+Analog domestic 1980s:
+
+```
+Overall amount / blend: low-medium, roughly 25-40%
+Grain: medium
+Halation: low
+Bloom: low
+Gate weave: off or tiny
+Vignette: subtle
+Saturation/print effect: slightly faded, less polished
+```
+
+How to judge it:
+
+- If it looks like synthwave by default, you have overdone saturation, cyan
+  shadows, or bloom.
+- If it looks too clean next to the FX3 montages, add texture and reduce digital
+  sharpness before adding more colour effect.
+- If it no longer belongs to the main film, reduce the palette separation before
+  reducing grain.
+
+### 1980s Fast Recipe
+
+For the likely best fit on ALEXA, start with moody late-1980s:
+
+1. Normalize LogC / ALEXA Wide Gamut.
+2. Build cleaner, deeper blacks than the 1960s/1970s.
+3. Add controlled contrast.
+4. Cool shadows slightly toward cyan/blue.
+5. Keep faces and practicals warm.
+6. Lower background saturation if it competes with faces.
+7. Add low-medium grain and low halation.
+8. Pull back anything that turns into teal-orange styling.
 
 ### 1980s Danger Signs
 
@@ -468,11 +652,39 @@ Recommended position:
 
 ### Suggested Relative Intensity
 
-| Era   | Grain         | Halation | Bloom                      | Gate Weave     | Saturation Effect               |
-| ----- | ------------- | -------- | -------------------------- | -------------- | ------------------------------- |
-| 1960s | Low to medium | Very low | Low                        | None or tiny   | Slightly restrained             |
-| 1970s | Medium        | Low      | Low                        | Tiny if useful | Muted/earthy                    |
-| 1980s | Low to medium | Low      | Low to medium if motivated | None           | Cleaner or selectively stronger |
+| Era   | Overall amount | Grain         | Halation | Bloom                      | Gate Weave     | Saturation Effect               |
+| ----- | -------------- | ------------- | -------- | -------------------------- | -------------- | ------------------------------- |
+| 1960s | Low            | Low to medium | Very low | Very low                   | None or tiny   | Slightly restrained             |
+| 1970s | Low-medium     | Medium        | Low      | Low or off                 | Tiny if useful | Muted/earthy                    |
+| 1980s | Low to medium  | Low to medium | Low      | Low to medium if motivated | None           | Cleaner or selectively stronger |
+
+Treat these as starting intensities, not numeric truth. Resolve's Film Look
+Creator response depends on the shot's exposure, colour management, and where
+the node sits in the tree.
+
+### Film Look Creator Rules
+
+Use Film Look Creator for physical film behavior:
+
+- grain
+- halation
+- bloom
+- diffusion/softness
+- vignette
+- tiny instability if motivated
+
+Do not use it as the only era grade. The decade should already be readable when
+the Film Look Creator node is bypassed. If the era disappears when that node is
+off, rebuild the contrast and palette nodes first.
+
+When adjusting:
+
+1. Set grain first, because grain changes perceived sharpness and contrast.
+2. Add halation only after the highlights are already controlled.
+3. Add bloom last, and only where motivated by bright sources.
+4. Add gate weave only after watching the montage in motion.
+5. Toggle the node often. The effect should integrate the shot, not announce
+   itself.
 
 Do not use gate weave just because it is available. Movement artifacts can
 quickly make the montage feel like parody.
